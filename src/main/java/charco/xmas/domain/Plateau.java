@@ -11,6 +11,11 @@ public class Plateau {
     public Plateau(List<Tuile> listInputTuiles) {
         this.tableauTuiles = new Tuile[7][7];
         this.listeTuiles = listInputTuiles;
+
+        listeTuiles.stream().forEach(tuile -> tableauTuiles[tuile.coordonnees().x][tuile.coordonnees().y] = tuile);
     }
 
+    public Tuile[][] tableauTuiles() {
+        return tableauTuiles;
+    }
 }

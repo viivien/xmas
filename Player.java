@@ -1,6 +1,10 @@
 import java.util.List;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.Objects;
+import java.util.Iterator;
 import java.util.ArrayList;
 class Player {
 	private static class Vector {
@@ -162,18 +166,21 @@ class Player {
 	}
 	private static class Tuile {
 	    private Coord coordonnes;
-	    private List<Chemin> chemins;
+	    private List<Direction> directions;
 	    private List<Objet> objets;
 	    public Tuile() {
 	        objets = new ArrayList<>();
 	    }
-	    public Tuile(int x, int y, List<Chemin> listChemins) {
+	    public Tuile(int x, int y, List<Direction> directions) {
 	        this();
 	        coordonnes = new Coord(x, y);
-	        chemins = listChemins;
+	        this.directions = directions;
 	    }
 	    public Coord coordonnees() {
 	        return coordonnes;
+	    }
+	    public List<Direction> directions() {
+	        return directions;
 	    }
 	    public List<Objet> objets() {
 	        return objets;
@@ -189,6 +196,10 @@ class Player {
 	    public Plateau(List<Tuile> listInputTuiles) {
 	        this.tableauTuiles = new Tuile[7][7];
 	        this.listeTuiles = listInputTuiles;
+	        listeTuiles.stream().forEach(tuile -> tableauTuiles[tuile.coordonnees().x][tuile.coordonnees().y] = tuile);
+	    }
+	    public Tuile[][] tableauTuiles() {
+	        return tableauTuiles;
 	    }
 	}
 	private static class Objet {
@@ -247,6 +258,17 @@ class Player {
 	    public Chemin(Direction direction) {
 	        this.direction = direction;
 	    }
+	    @Override
+	    public boolean equals(Object o) {
+	        if (this == o) return true;
+	        if (o == null || getClass() != o.getClass()) return false;
+	        Chemin chemin = (Chemin) o;
+	        return direction == chemin.direction;
+	    }
+	    @Override
+	    public int hashCode() {
+	        return Objects.hash(direction);
+	    }
 	}
 	private static class Partie {
 	    private Joueur moi;
@@ -264,6 +286,242 @@ class Player {
 	    }
 	    public Joueur moi() {
 	        return moi;
+	    }
+	    public Plateau plateau() {
+	        return plateau;
+	    }
+	}
+	private static class TuileGraph {
+	    private Coord coordonnes;
+	    private List adjacents;
+	    private int distance;
+	    private boolean parcouru;
+	    private TuileGraph pere;
+	    public TuileGraph(Coord coord){
+	        coordonnes = coord;
+	        adjacents = new LinkedList();
+	        pere = null;
+	        distance = -1;
+	        parcouru = false;
+	    }
+	    private static void reset(Collection c){
+	        for (Iterator it = c.iterator(); it.hasNext();){
+	            TuileGraph g = (TuileGraph)it.next();
+	            g.reset();
+	        }
+	    }
+	    public static void arete(TuileGraph g1, TuileGraph g2){
+	        g1.addAdjacent(g2);
+	        g2.addAdjacent(g1);
+	    }
+	    public static void parcoursProfondeur(Collection c){
+	        reset(c);
+	        for (Iterator it = c.iterator(); it.hasNext();){
+	            TuileGraph g = (TuileGraph)it.next();
+	            if (!g.estDejaParcouru())
+	                g.visiterProfondeur();
+	        }
+	        System.out.println();
+	    }
+	    public static boolean existeChemin(Collection c, TuileGraph s, TuileGraph t){
+	        reset(c);
+	        boolean b = s.existeChemin(t);
+	        if (b)
+	            t.afficherAncetres();
+	        else
+	            System.out.println("pas de chemin");
+	        return b;
+	    }
+	    public static void parcoursLargeur(Collection c){
+	        reset(c);
+	        for (Iterator it = c.iterator(); it.hasNext();){
+	            TuileGraph g = (TuileGraph)it.next();
+	            if (!g.estDejaParcouru())
+	                g.visiterLargeur();
+	        }
+	        System.out.println();
+	    }
+	    public static int plusCourtChemin(Collection c, TuileGraph s, TuileGraph t){
+	        reset(c);
+	        int d = s.plusCourtChemin(t); // parcours largeur depuis s
+	        if (d>0)
+	            t.afficherAncetres();
+	        else
+	            System.out.println("pas de chemin");
+	        return t.getDistance();
+	    }
+	    public final Coord getCoordonnes()      {return coordonnes;}
+	    public final TuileGraph getPere()      {return pere;}
+	    public final int    getDistance()  {return distance;}
+	    public final List   getAdjacents() {return adjacents;}
+	    public final boolean estDejaParcouru() {return parcouru;}
+	    public final void setParcouru(boolean b)    {parcouru = b;}
+	    public final void setDistance(int d)   {distance = d;}
+	    public void addAdjacent(TuileGraph g)      {adjacents.add(g);}
+	    private void setPere(TuileGraph g)         {pere = g;}
+	    private void reset(){
+	        setParcouru(false);
+	        pere = null;
+	        distance = -1;
+	    }
+	    public final void visiterProfondeur(){
+	        System.out.print(this);
+	        parcouru = true;
+	        for (Iterator it = adjacents.iterator(); it.hasNext();){
+	            TuileGraph g = (TuileGraph)it.next();
+	            if (!g.estDejaParcouru()){
+	                g.setPere(this);
+	                g.visiterProfondeur();
+	            }
+	        }
+	    }
+	    public final boolean existeChemin(TuileGraph t){
+	        boolean trouve = false;
+	        parcouru = true;
+	        if (equals(t))
+	            trouve = true;;
+	        for (Iterator it = adjacents.iterator(); it.hasNext();){
+	            TuileGraph g = (TuileGraph)it.next();
+	            if (!g.estDejaParcouru()){
+	                g.setPere(this);
+	                trouve = trouve || g.existeChemin(t);
+	            }
+	        }
+	        return trouve;
+	    }
+	    public final void visiterLargeur(){
+	        parcouru = true;
+	        distance = 0; // sommet de départ
+	        List file = new LinkedList();
+	        file.add(this);
+	        while (!file.isEmpty()){
+	            TuileGraph u = (TuileGraph)file.remove(0);
+	            System.out.print(u);
+	            for (Iterator it = u.getAdjacents().iterator(); it.hasNext();){
+	                TuileGraph g = (TuileGraph)it.next();
+	                if (!g.estDejaParcouru()){
+	                    g.setPere(u);
+	                    g.setParcouru(true);
+	                    g.setDistance(u.getDistance()+1);
+	                    file.add(g);
+	                }
+	            }
+	            u.setParcouru(true); // noir
+	        }
+	    }
+	    public final int plusCourtChemin(TuileGraph t){
+	        parcouru = true;
+	        distance = 0; // sommet de départ
+	        List file = new LinkedList();
+	        file.add(this);
+	        while (!file.isEmpty()){
+	            TuileGraph u = (TuileGraph)file.remove(0);
+	            if (u.equals(t))
+	                return u.getDistance();
+	            for (Iterator it = u.getAdjacents().iterator(); it.hasNext();){
+	                TuileGraph g = (TuileGraph)it.next();
+	                if (!g.estDejaParcouru()){
+	                    g.setPere(u);
+	                    g.setParcouru(true);
+	                    g.setDistance(u.getDistance()+1);
+	                    file.add(g);
+	                }
+	            }
+	            u.setParcouru(true);
+	        }
+	        return -1;
+	    }
+	    public void afficherAncetres(){
+	        List chemin = new LinkedList();
+	        TuileGraph aux = this;
+	        while (aux.getPere()!=null){
+	            chemin.add(0,aux); // en debut de liste
+	            aux = aux.getPere();
+	        }
+	        chemin.add(0,aux);
+	        System.out.println(chemin);
+	    }
+	    public String toString(){
+	        return "["+coordonnes.x+", "+coordonnes.y+"]";
+	    }
+	    @Override
+	    public boolean equals(Object o) {
+	        if (this == o) return true;
+	        if (o == null || getClass() != o.getClass()) return false;
+	        TuileGraph that = (TuileGraph) o;
+	        return Objects.equals(coordonnes, that.coordonnes);
+	    }
+	    @Override
+	    public int hashCode() {
+	        return Objects.hash(coordonnes);
+	    }
+	}
+	private static class PlateauGraph {
+	    private List<TuileGraph> tuileGraphList;
+	    public PlateauGraph(Plateau plateau) {
+	        tuileGraphList = new ArrayList<>();
+	        mapTuilesToTuileGraph(plateau.tableauTuiles());
+	    }
+	    public boolean isCheminPossibleEntre(Coord coord1, Coord coord2) {
+	        return TuileGraph.existeChemin(tuileGraphList, getTuileGraphByCoordonnees(coord1), getTuileGraphByCoordonnees(coord2));
+	    }
+	    public void printChemin(Coord coordonnees, Coord coordonnees1) {
+	        TuileGraph.parcoursProfondeur(tuileGraphList);
+	    }
+	    private void mapTuilesToTuileGraph(Tuile[][] tableauTuiles) {
+	        for (int x = 0; x < tableauTuiles.length; x++) {
+	            for (int y = 0; y <tableauTuiles[0].length; y++) {
+	                Tuile tuile = tableauTuiles[x][y];
+	                TuileGraph tuileGraph = createIfNotExistAndGetTuileGraph(tuile.coordonnees());
+	                Optional<Tuile> tuileUp = getTuile(tableauTuiles, x, y - 1);
+	                if (tuileUp.isPresent()) {
+	                    TuileGraph tuileGraphUp = createIfNotExistAndGetTuileGraph(tuileUp.get().coordonnees());
+	                    if (tuile.directions().contains(Direction.UP) && tuileUp.get().directions().contains(Direction.DOWN)) {
+	                        tuileGraph.addAdjacent(tuileGraphUp);
+	                    }
+	                }
+	                Optional<Tuile> tuileDown = getTuile(tableauTuiles, x, y + 1);
+	                if (tuileDown.isPresent()) {
+	                    TuileGraph tuileGraphDown = createIfNotExistAndGetTuileGraph(tuileDown.get().coordonnees());
+	                    if (tuile.directions().contains(Direction.DOWN) && tuileDown.get().directions().contains(Direction.UP)) {
+	                        tuileGraph.addAdjacent(tuileGraphDown);
+	                    }
+	                }
+	                Optional<Tuile> tuileLeft = getTuile(tableauTuiles, x - 1, y);
+	                if (tuileLeft.isPresent()) {
+	                    TuileGraph tuileGraphLeft = createIfNotExistAndGetTuileGraph(tuileLeft.get().coordonnees());
+	                    if (tuile.directions().contains(Direction.LEFT) && tuileLeft.get().directions().contains(Direction.RIGHT)) {
+	                        tuileGraph.addAdjacent(tuileGraphLeft);
+	                    }
+	                }
+	                Optional<Tuile> tuileRight = getTuile(tableauTuiles, x + 1, y);
+	                if (tuileRight.isPresent()) {
+	                    TuileGraph tuileGraphRight = createIfNotExistAndGetTuileGraph(tuileRight.get().coordonnees());
+	                    if (tuile.directions().contains(Direction.RIGHT) && tuileRight.get().directions().contains(Direction.LEFT)) {
+	                        tuileGraph.addAdjacent(tuileGraphRight);
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    private TuileGraph createIfNotExistAndGetTuileGraph(Coord coordonnees) {
+	        Optional<TuileGraph> tuileGraphOptional = tuileGraphList.stream().filter(tuileGraph -> tuileGraph.getCoordonnes().equals(coordonnees)).findFirst();
+	        if (tuileGraphOptional.isPresent()) {
+	            return tuileGraphOptional.get();
+	        } else {
+	            TuileGraph tuileGraph = new TuileGraph(coordonnees);
+	            tuileGraphList.add(tuileGraph);
+	            return tuileGraph;
+	        }
+	    }
+	    private Optional<Tuile> getTuile(Tuile[][] tableauTuiles, int x, int y) {
+	        if (x >= 0 && x < tableauTuiles.length && y >= 0 && y < tableauTuiles[x].length) {
+	            return Optional.of(tableauTuiles[x][y]);
+	        }
+	        return Optional.empty();
+	    }
+	    private TuileGraph getTuileGraphByCoordonnees(Coord coord) {
+	        return tuileGraphList.stream().filter(tuileGraph -> tuileGraph.getCoordonnes().equals(coord)).findFirst().orElseThrow(IllegalStateException::new);
 	    }
 	}
 	private static class PushTuileWithQuestObjet {
@@ -305,14 +563,19 @@ class Player {
 	private static class MoveToQuestObject {
 	    private Joueur joueur;
 	    private Plateau plateau;
-	    public MoveToQuestObject() {
-	    }
-	    public MoveToQuestObject(Joueur joueur, Plateau plateau) {
+	    private Objet objetDeQuete;
+	    public MoveToQuestObject(Plateau plateau, Joueur joueur, Objet objetDeQuete) {
 	        this.joueur = joueur;
 	        this.plateau = plateau;
+	        this.objetDeQuete = objetDeQuete;
 	    }
 	    public void execute() {
-	        System.out.println("PASS");
+	        PlateauGraph plateauGraph = new PlateauGraph(plateau);
+	        if (plateauGraph.isCheminPossibleEntre(joueur.coordonnees(), objetDeQuete.coordonnees())) {
+	            plateauGraph.printChemin(joueur.coordonnees(), objetDeQuete.coordonnees());
+	        } else {
+	            System.out.println("PASS");
+	        }
 	    }
 	}
 	private static class FindNextAction {
@@ -323,12 +586,13 @@ class Player {
 	    public void execute() {
 	        if (TourDeJeu.PUSH.equals(partie.currentTurn())) {
 	            if (partie.moi().possedeTuileAvecObjetDeMaQuete()) {
+	                System.out.println("PUSH 1 RIGHT");
 	            } else {
 	                PushTuileWithQuestObjet getTuileWithQuestObjet = new PushTuileWithQuestObjet(partie.moi());
 	                getTuileWithQuestObjet.execute();
 	            }
 	        } else if(TourDeJeu.MOVE.equals(partie.currentTurn())) {
-	            MoveToQuestObject moveToQuestObject = new MoveToQuestObject();
+	            MoveToQuestObject moveToQuestObject = new MoveToQuestObject(partie.plateau(), partie.moi(), partie.moi().objets().get(0));
 	            moveToQuestObject.execute();
 	        }
 	    }
@@ -345,8 +609,8 @@ class Player {
             for (int i = 0; i < 7; i++) {
                 for (int j = 0; j < 7; j++) {
                     String tile = in.next();
-                    List<Chemin> listChemins = getCheminsFromInputString(tile);
-                    Tuile tuile = new Tuile(i, j, listChemins);
+                    List<Direction> directions = getDirectionsFromInputString(tile);
+                    Tuile tuile = new Tuile(i, j, directions);
                     listInputTuiles.add(tuile);
                 }
             }
@@ -357,8 +621,8 @@ class Player {
                 int playerX = in.nextInt();
                 int playerY = in.nextInt();
                 String playerTile = in.next();
-                List<Chemin> listChemins = getCheminsFromInputString(playerTile);
-                Tuile tuileJoueur = new Tuile(playerX, playerY, listChemins);
+                List<Direction> directions = getDirectionsFromInputString(playerTile);
+                Tuile tuileJoueur = new Tuile(playerX, playerY, directions);
                 if (i == 0) {
                     monJoueur = new Joueur(tuileJoueur);
                 } else {
@@ -388,20 +652,20 @@ class Player {
             findNextAction.execute();
         }
     }
-    private static List<Chemin> getCheminsFromInputString(String tile) {
-        List<Chemin> chemins = new ArrayList<>();
+    private static List<Direction> getDirectionsFromInputString(String tile) {
+        List<Direction> directions = new ArrayList<>();
         if (tile.toCharArray()[0] == '1') {
-            chemins.add(new Chemin(Direction.UP));
+            directions.add(Direction.UP);
         }
         if (tile.toCharArray()[1] == '1') {
-            chemins.add(new Chemin(Direction.RIGHT));
+            directions.add(Direction.RIGHT);
         }
         if (tile.toCharArray()[2] == '1') {
-            chemins.add(new Chemin(Direction.DOWN));
+            directions.add(Direction.DOWN);
         }
         if (tile.toCharArray()[3] == '1') {
-            chemins.add(new Chemin(Direction.LEFT));
+            directions.add(Direction.LEFT);
         }
-        return chemins;
+        return directions;
     }
 }

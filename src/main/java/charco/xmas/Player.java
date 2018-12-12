@@ -34,8 +34,8 @@ class Player {
             for (int i = 0; i < 7; i++) {
                 for (int j = 0; j < 7; j++) {
                     String tile = in.next();
-                    List<Chemin> listChemins = getCheminsFromInputString(tile);
-                    Tuile tuile = new Tuile(i, j, listChemins);
+                    List<Direction> directions = getDirectionsFromInputString(tile);
+                    Tuile tuile = new Tuile(i, j, directions);
                     listInputTuiles.add(tuile);
                 }
             }
@@ -49,8 +49,8 @@ class Player {
                 int playerX = in.nextInt();
                 int playerY = in.nextInt();
                 String playerTile = in.next();
-                List<Chemin> listChemins = getCheminsFromInputString(playerTile);
-                Tuile tuileJoueur = new Tuile(playerX, playerY, listChemins);
+                List<Direction> directions = getDirectionsFromInputString(playerTile);
+                Tuile tuileJoueur = new Tuile(playerX, playerY, directions);
                 if (i == 0) {
                     monJoueur = new Joueur(tuileJoueur);
                 } else {
@@ -97,20 +97,20 @@ class Player {
         }
     }
 
-    private static List<Chemin> getCheminsFromInputString(String tile) {
-        List<Chemin> chemins = new ArrayList<>();
+    private static List<Direction> getDirectionsFromInputString(String tile) {
+        List<Direction> directions = new ArrayList<>();
         if (tile.toCharArray()[0] == '1') {
-            chemins.add(new Chemin(Direction.UP));
+            directions.add(Direction.UP);
         }
         if (tile.toCharArray()[1] == '1') {
-            chemins.add(new Chemin(Direction.RIGHT));
+            directions.add(Direction.RIGHT);
         }
         if (tile.toCharArray()[2] == '1') {
-            chemins.add(new Chemin(Direction.DOWN));
+            directions.add(Direction.DOWN);
         }
         if (tile.toCharArray()[3] == '1') {
-            chemins.add(new Chemin(Direction.LEFT));
+            directions.add(Direction.LEFT);
         }
-        return chemins;
+        return directions;
     }
 }

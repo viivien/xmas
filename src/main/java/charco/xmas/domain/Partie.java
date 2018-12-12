@@ -28,6 +28,10 @@ public class Partie {
         return moi;
     }
 
+    public Plateau plateau() {
+        return plateau;
+    }
+
 //    public void setMyPlayerInfo(Joueur joueur) {
 //        moi = Objects.requireNonNull(joueur);
 //    }

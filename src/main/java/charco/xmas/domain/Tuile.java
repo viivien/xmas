@@ -8,7 +8,7 @@ import java.util.List;
 public class Tuile {
     private Coord coordonnes;
 
-    private List<Chemin> chemins;
+    private List<Direction> directions;
 
     private List<Objet> objets;
 
@@ -16,14 +16,18 @@ public class Tuile {
         objets = new ArrayList<>();
     }
 
-    public Tuile(int x, int y, List<Chemin> listChemins) {
+    public Tuile(int x, int y, List<Direction> directions) {
         this();
         coordonnes = new Coord(x, y);
-        chemins = listChemins;
+        this.directions = directions;
     }
 
     public Coord coordonnees() {
         return coordonnes;
+    }
+
+    public List<Direction> directions() {
+        return directions;
     }
 
     public List<Objet> objets() {

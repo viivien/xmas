@@ -14,6 +14,7 @@ public class FindNextAction {
         if (TourDeJeu.PUSH.equals(partie.currentTurn())) {
             if (partie.moi().possedeTuileAvecObjetDeMaQuete()) {
                 // ou l'insérer pour y avoir accès ?
+                System.out.println("PUSH 1 RIGHT");
             } else {
                 // Trouver quel coté pousser pour récuperer la tuile le plus rapidement possible
                 PushTuileWithQuestObjet getTuileWithQuestObjet = new PushTuileWithQuestObjet(partie.moi());
@@ -21,7 +22,7 @@ public class FindNextAction {
             }
         } else if(TourDeJeu.MOVE.equals(partie.currentTurn())) {
             // Si j'ai accès à un objet, je m'y dirige
-            MoveToQuestObject moveToQuestObject = new MoveToQuestObject();
+            MoveToQuestObject moveToQuestObject = new MoveToQuestObject(partie.plateau(), partie.moi(), partie.moi().objets().get(0));
             moveToQuestObject.execute();
         }
     }
