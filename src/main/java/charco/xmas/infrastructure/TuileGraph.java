@@ -52,7 +52,7 @@ public class TuileGraph {
             if (!g.estDejaParcouru())
                 g.visiterProfondeur();
         }
-        System.out.println();
+        System.err.println();
     }
 
     /** S'il existe, affichage d'un chemin
@@ -64,7 +64,7 @@ public class TuileGraph {
         if (b)
             t.afficherAncetres();
         else
-            System.out.println("pas de chemin");
+            System.err.println("pas de chemin");
         return b;
     }
 
@@ -76,7 +76,7 @@ public class TuileGraph {
             if (!g.estDejaParcouru())
                 g.visiterLargeur();
         }
-        System.out.println();
+        System.err.println();
     }
 
     /** S'il existe, affichage d'un chemin
@@ -88,7 +88,7 @@ public class TuileGraph {
         if (d>0)
             t.afficherAncetres();
         else
-            System.out.println("pas de chemin");
+            System.err.println("pas de chemin");
         return t.getDistance();
     }
 
@@ -114,7 +114,7 @@ public class TuileGraph {
     }
 
     public final void visiterProfondeur(){
-        System.out.print(this);
+        System.err.print(this);
         parcouru = true;
         for (Iterator it = adjacents.iterator(); it.hasNext();){
             TuileGraph g = (TuileGraph)it.next();
@@ -147,7 +147,7 @@ public class TuileGraph {
         file.add(this);
         while (!file.isEmpty()){
             TuileGraph u = (TuileGraph)file.remove(0);
-            System.out.print(u);
+            System.err.print(u);
             for (Iterator it = u.getAdjacents().iterator(); it.hasNext();){
                 TuileGraph g = (TuileGraph)it.next();
                 if (!g.estDejaParcouru()){
@@ -192,7 +192,7 @@ public class TuileGraph {
             aux = aux.getPere();
         }
         chemin.add(0,aux);
-        System.out.println(chemin);
+        System.err.println(chemin);
     }
 
     public String toString(){
