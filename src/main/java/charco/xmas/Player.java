@@ -1,5 +1,6 @@
 package charco.xmas;
 
+import charco.xmas.application.FindNextAction;
 import charco.xmas.domain.Chemin;
 import charco.xmas.domain.Direction;
 import charco.xmas.domain.Joueur;
@@ -91,11 +92,8 @@ class Player {
             // Write an action using System.out.println()
             // To debug: System.err.println("Debug messages...");
 
-            if (maPartie.currentTurn().equals(TourDeJeu.PUSH)) {
-                System.out.println("PUSH " + joueurEnnemi.coordonnees().x + " LEFT");
-            } else {
-                System.out.println("PASS");
-            }
+            FindNextAction findNextAction = new FindNextAction(maPartie);
+            findNextAction.execute();
         }
     }
 

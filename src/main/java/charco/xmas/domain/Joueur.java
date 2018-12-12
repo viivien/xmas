@@ -26,4 +26,12 @@ public class Joueur {
     public void addObjet(Objet objet) {
         objets.add(objet);
     }
+
+    public List<Objet> objets() {
+        return objets;
+    }
+
+    public boolean possedeTuileAvecObjetDeMaQuete() {
+        return tuile.objets().stream().anyMatch(this.objets::contains);
+    }
 }

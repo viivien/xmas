@@ -25,4 +25,8 @@ public class Tuile {
     public Coord coordonnees() {
         return coordonnes;
     }
+
+    public List<Objet> objets() {
+        return objets;
+    }
 }

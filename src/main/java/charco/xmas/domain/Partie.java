@@ -24,6 +24,10 @@ public class Partie {
         return tourActuel;
     }
 
+    public Joueur moi() {
+        return moi;
+    }
+
 //    public void setMyPlayerInfo(Joueur joueur) {
 //        moi = Objects.requireNonNull(joueur);
 //    }

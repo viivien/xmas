@@ -175,6 +175,9 @@ class Player {
 	    public Coord coordonnees() {
 	        return coordonnes;
 	    }
+	    public List<Objet> objets() {
+	        return objets;
+	    }
 	}
 	private static enum TourDeJeu {
 	    PUSH,
@@ -188,27 +191,26 @@ class Player {
 	        this.listeTuiles = listInputTuiles;
 	    }
 	}
-	private static class Partie {
-	    private Joueur moi;
-	    private Joueur ennemi;
-	    private Plateau plateau;
-	    private TourDeJeu tourActuel;
-	    public Partie(TourDeJeu tourActuel, Joueur monJoueur, Joueur joueurEnnemi, List<Tuile> listInputTuiles) {
-	        this.tourActuel = tourActuel;
-	        this.moi = monJoueur;
-	        this.ennemi = joueurEnnemi;
-	        plateau = new Plateau(listInputTuiles);
-	    }
-	    public TourDeJeu currentTurn() {
-	        return tourActuel;
-	    }
-	}
 	private static class Objet {
 	    private String nom;
 	    private Coord coordonnees;
 	    public Objet(String nom, int x, int y) {
 	        this.nom = nom;
-	        this.coordonnees = coordonnees;
+	        this.coordonnees = new Coord(x, y);
+	    }
+	    @Override
+	    public boolean equals(Object o) {
+	        if (this == o) return true;
+	        if (o == null || getClass() != o.getClass()) return false;
+	        Objet objet = (Objet) o;
+	        return Objects.equals(nom, objet.nom);
+	    }
+	    @Override
+	    public int hashCode() {
+	        return Objects.hash(nom);
+	    }
+	    public Coord coordonnees() {
+	        return coordonnees;
 	    }
 	}
 	private static class Joueur {
@@ -227,6 +229,12 @@ class Player {
 	    public void addObjet(Objet objet) {
 	        objets.add(objet);
 	    }
+	    public List<Objet> objets() {
+	        return objets;
+	    }
+	    public boolean possedeTuileAvecObjetDeMaQuete() {
+	        return tuile.objets().stream().anyMatch(this.objets::contains);
+	    }
 	}
 	private static enum Direction {
 	    UP,
@@ -238,6 +246,91 @@ class Player {
 	    private Direction direction;
 	    public Chemin(Direction direction) {
 	        this.direction = direction;
+	    }
+	}
+	private static class Partie {
+	    private Joueur moi;
+	    private Joueur ennemi;
+	    private Plateau plateau;
+	    private TourDeJeu tourActuel;
+	    public Partie(TourDeJeu tourActuel, Joueur monJoueur, Joueur joueurEnnemi, List<Tuile> listInputTuiles) {
+	        this.tourActuel = tourActuel;
+	        this.moi = monJoueur;
+	        this.ennemi = joueurEnnemi;
+	        plateau = new Plateau(listInputTuiles);
+	    }
+	    public TourDeJeu currentTurn() {
+	        return tourActuel;
+	    }
+	    public Joueur moi() {
+	        return moi;
+	    }
+	}
+	private static class PushTuileWithQuestObjet {
+	    private Joueur joueur;
+	    public PushTuileWithQuestObjet(Joueur joueur) {
+	        this.joueur = joueur;
+	    }
+	    public void execute() {
+	        Coord coordonneesObjet = joueur.objets().get(0).coordonnees();
+	        int x = coordonneesObjet.x;
+	        int y = coordonneesObjet.y;
+	        int minHorizontal = 6;
+	        int minVertical = 6;
+	        String action = "PUSH ";
+	        String directionHorizontaleAPousser = "RIGHT";
+	        String directionVerticaleAPousser = "DOWN";
+	        if (x < (6 - x)) {
+	            minHorizontal = x;
+	            directionHorizontaleAPousser = "LEFT";
+	        } else {
+	            minHorizontal = 6 - x;
+	        }
+	        if (y < (6 - y)) {
+	            minVertical = y;
+	            directionVerticaleAPousser = "UP";
+	        } else {
+	            minVertical = 6 - y;
+	        }
+	        if (minHorizontal < minVertical) {
+	            action += y + " " + directionHorizontaleAPousser;
+	        } else {
+	            action += x + " " + directionVerticaleAPousser;
+	        }
+	        System.err.println(directionHorizontaleAPousser);
+	        System.err.println(directionVerticaleAPousser);
+	        System.out.println(action);
+	    }
+	}
+	private static class MoveToQuestObject {
+	    private Joueur joueur;
+	    private Plateau plateau;
+	    public MoveToQuestObject() {
+	    }
+	    public MoveToQuestObject(Joueur joueur, Plateau plateau) {
+	        this.joueur = joueur;
+	        this.plateau = plateau;
+	    }
+	    public void execute() {
+	        System.out.println("PASS");
+	    }
+	}
+	private static class FindNextAction {
+	    private Partie partie;
+	    public FindNextAction(Partie partie) {
+	        this.partie = partie;
+	    }
+	    public void execute() {
+	        if (TourDeJeu.PUSH.equals(partie.currentTurn())) {
+	            if (partie.moi().possedeTuileAvecObjetDeMaQuete()) {
+	            } else {
+	                PushTuileWithQuestObjet getTuileWithQuestObjet = new PushTuileWithQuestObjet(partie.moi());
+	                getTuileWithQuestObjet.execute();
+	            }
+	        } else if(TourDeJeu.MOVE.equals(partie.currentTurn())) {
+	            MoveToQuestObject moveToQuestObject = new MoveToQuestObject();
+	            moveToQuestObject.execute();
+	        }
 	    }
 	}
     public static void main(String args[]) {
@@ -291,11 +384,8 @@ class Player {
                 int questPlayerId = in.nextInt();
             }
             Partie maPartie = new Partie(tourActuel, monJoueur, joueurEnnemi, listInputTuiles);
-            if (maPartie.currentTurn().equals(TourDeJeu.PUSH)) {
-                System.out.println("PUSH " + joueurEnnemi.coordonnees().x + " LEFT");
-            } else {
-                System.out.println("PASS");
-            }
+            FindNextAction findNextAction = new FindNextAction(maPartie);
+            findNextAction.execute();
         }
     }
     private static List<Chemin> getCheminsFromInputString(String tile) {
