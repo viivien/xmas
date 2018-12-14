@@ -32,6 +32,12 @@ public class Joueur {
     }
 
     public boolean possedeTuileAvecObjetDeMaQuete() {
-        return tuile.objets().stream().anyMatch(this.objets::contains);
+        for (Objet objet : objets) {
+            System.err.println("objet du joueur : " + objet.nom() + " " + objet.coordonnees().x + "-" + objet.coordonnees().y);
+        }
+        for (Objet objet : tuile.objets()) {
+            System.err.println("objet de la tuile du joueur : " + objet.nom() + " " + objet.coordonnees().x + "-" + objet.coordonnees().y);
+        }
+        return objets.stream().anyMatch(objet -> objet.coordonnees().x == -1);
     }
 }

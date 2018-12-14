@@ -105,6 +105,10 @@ public class Coord {
         return true;
     }
 
+    public boolean estDansLeTableau() {
+        return x >= 0 && y >=0;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -118,5 +122,4 @@ public class Coord {
     public String toString() {
         return "[x=" + x + ", y=" + y + "]";
     }
-
 }

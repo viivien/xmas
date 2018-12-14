@@ -151,6 +151,9 @@ class Player {
 	        }
 	        return true;
 	    }
+	    public boolean estDansLeTableau() {
+	        return x >= 0 && y >=0;
+	    }
 	    @Override
 	    public int hashCode() {
 	        final int prime = 31;
@@ -184,6 +187,9 @@ class Player {
 	    }
 	    public List<Objet> objets() {
 	        return objets;
+	    }
+	    public void addObjet(Objet objet) {
+	        objets.add(objet);
 	    }
 	}
 	private static enum TourDeJeu {
@@ -223,6 +229,9 @@ class Player {
 	    public Coord coordonnees() {
 	        return coordonnees;
 	    }
+	    public String nom() {
+	        return nom;
+	    }
 	}
 	private static class Joueur {
 	    private Tuile tuile;
@@ -244,7 +253,13 @@ class Player {
 	        return objets;
 	    }
 	    public boolean possedeTuileAvecObjetDeMaQuete() {
-	        return tuile.objets().stream().anyMatch(this.objets::contains);
+	        for (Objet objet : objets) {
+	            System.err.println("objet du joueur : " + objet.nom() + " " + objet.coordonnees().x + "-" + objet.coordonnees().y);
+	        }
+	        for (Objet objet : tuile.objets()) {
+	            System.err.println("objet de la tuile du joueur : " + objet.nom() + " " + objet.coordonnees().x + "-" + objet.coordonnees().y);
+	        }
+	        return objets.stream().anyMatch(objet -> objet.coordonnees().x == -1);
 	    }
 	}
 	private static enum Direction {
@@ -321,7 +336,7 @@ class Player {
 	            if (!g.estDejaParcouru())
 	                g.visiterProfondeur();
 	        }
-	        System.out.println();
+	        System.err.println();
 	    }
 	    public static boolean existeChemin(Collection c, TuileGraph s, TuileGraph t){
 	        reset(c);
@@ -329,7 +344,7 @@ class Player {
 	        if (b)
 	            t.afficherAncetres();
 	        else
-	            System.out.println("pas de chemin");
+	            System.err.println("pas de chemin");
 	        return b;
 	    }
 	    public static void parcoursLargeur(Collection c){
@@ -339,7 +354,7 @@ class Player {
 	            if (!g.estDejaParcouru())
 	                g.visiterLargeur();
 	        }
-	        System.out.println();
+	        System.err.println();
 	    }
 	    public static int plusCourtChemin(Collection c, TuileGraph s, TuileGraph t){
 	        reset(c);
@@ -347,7 +362,7 @@ class Player {
 	        if (d>0)
 	            t.afficherAncetres();
 	        else
-	            System.out.println("pas de chemin");
+	            System.err.println("pas de chemin");
 	        return t.getDistance();
 	    }
 	    public final Coord getCoordonnes()      {return coordonnes;}
@@ -365,7 +380,7 @@ class Player {
 	        distance = -1;
 	    }
 	    public final void visiterProfondeur(){
-	        System.out.print(this);
+	        System.err.print(this);
 	        parcouru = true;
 	        for (Iterator it = adjacents.iterator(); it.hasNext();){
 	            TuileGraph g = (TuileGraph)it.next();
@@ -396,7 +411,7 @@ class Player {
 	        file.add(this);
 	        while (!file.isEmpty()){
 	            TuileGraph u = (TuileGraph)file.remove(0);
-	            System.out.print(u);
+	            System.err.print(u);
 	            for (Iterator it = u.getAdjacents().iterator(); it.hasNext();){
 	                TuileGraph g = (TuileGraph)it.next();
 	                if (!g.estDejaParcouru()){
@@ -439,7 +454,7 @@ class Player {
 	            aux = aux.getPere();
 	        }
 	        chemin.add(0,aux);
-	        System.out.println(chemin);
+	        System.err.println(chemin);
 	    }
 	    public String toString(){
 	        return "["+coordonnes.x+", "+coordonnes.y+"]";
@@ -463,10 +478,12 @@ class Player {
 	        mapTuilesToTuileGraph(plateau.tableauTuiles());
 	    }
 	    public boolean isCheminPossibleEntre(Coord coord1, Coord coord2) {
+	        if (!coord1.estDansLeTableau() || !coord2.estDansLeTableau()) {
+	            return false;
+	        }
 	        return TuileGraph.existeChemin(tuileGraphList, getTuileGraphByCoordonnees(coord1), getTuileGraphByCoordonnees(coord2));
 	    }
 	    public void printChemin(Coord coordonnees, Coord coordonnees1) {
-	        TuileGraph.parcoursProfondeur(tuileGraphList);
 	    }
 	    private void mapTuilesToTuileGraph(Tuile[][] tableauTuiles) {
 	        for (int x = 0; x < tableauTuiles.length; x++) {
@@ -521,6 +538,7 @@ class Player {
 	        return Optional.empty();
 	    }
 	    private TuileGraph getTuileGraphByCoordonnees(Coord coord) {
+	        System.err.println("getTuileGraphByCoordonnees : "  + coord.x + " " + coord.y);
 	        return tuileGraphList.stream().filter(tuileGraph -> tuileGraph.getCoordonnes().equals(coord)).findFirst().orElseThrow(IllegalStateException::new);
 	    }
 	}
@@ -571,11 +589,17 @@ class Player {
 	    }
 	    public void execute() {
 	        PlateauGraph plateauGraph = new PlateauGraph(plateau);
-	        if (plateauGraph.isCheminPossibleEntre(joueur.coordonnees(), objetDeQuete.coordonnees())) {
+	        if (joueur.possedeTuileAvecObjetDeMaQuete()) {
+	            System.err.println("possedeTuileAvecObjetDeMaQuete");
+	            passe();
+	        } else if (plateauGraph.isCheminPossibleEntre(joueur.coordonnees(), objetDeQuete.coordonnees())) {
 	            plateauGraph.printChemin(joueur.coordonnees(), objetDeQuete.coordonnees());
 	        } else {
-	            System.out.println("PASS");
+	            passe();
 	        }
+	    }
+	    private void passe() {
+	        System.out.println("PASS");
 	    }
 	}
 	private static class FindNextAction {
@@ -586,8 +610,10 @@ class Player {
 	    public void execute() {
 	        if (TourDeJeu.PUSH.equals(partie.currentTurn())) {
 	            if (partie.moi().possedeTuileAvecObjetDeMaQuete()) {
-	                System.out.println("PUSH 1 RIGHT");
+	                System.err.println("possedeTuileAvecObjetDeMaQuete");
+	                System.out.println("PUSH 2 DOWN");
 	            } else {
+	                System.err.println("nePossedePasDeTuileAvecObjetDeMaQuete");
 	                PushTuileWithQuestObjet getTuileWithQuestObjet = new PushTuileWithQuestObjet(partie.moi());
 	                getTuileWithQuestObjet.execute();
 	            }
@@ -623,6 +649,7 @@ class Player {
                 String playerTile = in.next();
                 List<Direction> directions = getDirectionsFromInputString(playerTile);
                 Tuile tuileJoueur = new Tuile(playerX, playerY, directions);
+                listInputTuiles.add(tuileJoueur);
                 if (i == 0) {
                     monJoueur = new Joueur(tuileJoueur);
                 } else {
@@ -636,11 +663,12 @@ class Player {
                 int itemY = in.nextInt();
                 int itemPlayerId = in.nextInt();
                 Objet objet = new Objet(itemName, itemX, itemY);
-                if (itemPlayerId == 0) {
+                if (itemPlayerId == 0 || itemX == -1) {
                     monJoueur.addObjet(objet);
                 } else {
                     joueurEnnemi.addObjet(objet);
                 }
+                listInputTuiles.stream().filter(tuile -> tuile.coordonnees().equals(new Coord(itemX, itemY))).findFirst().ifPresent(tuile -> tuile.addObjet(objet));
             }
             int numQuests = in.nextInt(); // the total number of revealed quests for both players
             for (int i = 0; i < numQuests; i++) {

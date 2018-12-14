@@ -18,10 +18,19 @@ public class MoveToQuestObject {
 
     public void execute() {
         PlateauGraph plateauGraph = new PlateauGraph(plateau);
-        if (plateauGraph.isCheminPossibleEntre(joueur.coordonnees(), objetDeQuete.coordonnees())) {
+        if (joueur.possedeTuileAvecObjetDeMaQuete()) {
+            System.err.println("possedeTuileAvecObjetDeMaQuete");
+            passe();
+        } else if (plateauGraph.isCheminPossibleEntre(joueur.coordonnees(), objetDeQuete.coordonnees())) {
             plateauGraph.printChemin(joueur.coordonnees(), objetDeQuete.coordonnees());
         } else {
-            System.out.println("PASS");
+            passe();
         }
+    }
+
+
+
+    private void passe() {
+        System.out.println("PASS");
     }
 }

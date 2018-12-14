@@ -18,11 +18,14 @@ public class PlateauGraph {
     }
 
     public boolean isCheminPossibleEntre(Coord coord1, Coord coord2) {
+        if (!coord1.estDansLeTableau() || !coord2.estDansLeTableau()) {
+            return false;
+        }
         return TuileGraph.existeChemin(tuileGraphList, getTuileGraphByCoordonnees(coord1), getTuileGraphByCoordonnees(coord2));
     }
 
     public void printChemin(Coord coordonnees, Coord coordonnees1) {
-        TuileGraph.parcoursProfondeur(tuileGraphList);
+        //TuileGraph.plusCourtChemin(tuileGraphList, coordonnees, coordonnees1);
     }
 
     private void mapTuilesToTuileGraph(Tuile[][] tableauTuiles) {
@@ -89,6 +92,7 @@ public class PlateauGraph {
     }
 
     private TuileGraph getTuileGraphByCoordonnees(Coord coord) {
+        System.err.println("getTuileGraphByCoordonnees : "  + coord.x + " " + coord.y);
         return tuileGraphList.stream().filter(tuileGraph -> tuileGraph.getCoordonnes().equals(coord)).findFirst().orElseThrow(IllegalStateException::new);
     }
 }

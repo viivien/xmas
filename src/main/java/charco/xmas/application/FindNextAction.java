@@ -13,9 +13,11 @@ public class FindNextAction {
     public void execute() {
         if (TourDeJeu.PUSH.equals(partie.currentTurn())) {
             if (partie.moi().possedeTuileAvecObjetDeMaQuete()) {
+                System.err.println("possedeTuileAvecObjetDeMaQuete");
                 // ou l'insérer pour y avoir accès ?
-                System.out.println("PUSH 1 RIGHT");
+                System.out.println("PUSH 2 DOWN");
             } else {
+                System.err.println("nePossedePasDeTuileAvecObjetDeMaQuete");
                 // Trouver quel coté pousser pour récuperer la tuile le plus rapidement possible
                 PushTuileWithQuestObjet getTuileWithQuestObjet = new PushTuileWithQuestObjet(partie.moi());
                 getTuileWithQuestObjet.execute();

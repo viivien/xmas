@@ -33,4 +33,8 @@ public class Tuile {
     public List<Objet> objets() {
         return objets;
     }
+
+    public void addObjet(Objet objet) {
+        objets.add(objet);
+    }
 }

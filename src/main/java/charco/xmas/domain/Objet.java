@@ -30,4 +30,8 @@ public class Objet {
     public Coord coordonnees() {
         return coordonnees;
     }
+
+    public String nom() {
+        return nom;
+    }
 }

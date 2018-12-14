@@ -1,7 +1,6 @@
 package charco.xmas.domain;
 
 import java.util.List;
-import java.util.Objects;
 
 public class Partie {
     private Joueur moi;
@@ -32,11 +31,4 @@ public class Partie {
         return plateau;
     }
 
-//    public void setMyPlayerInfo(Joueur joueur) {
-//        moi = Objects.requireNonNull(joueur);
-//    }
-//
-//    public void setEnnemyPlayerInfo(Joueur joueur) {
-//        ennemi = Objects.requireNonNull(joueur);
-//    }
 }

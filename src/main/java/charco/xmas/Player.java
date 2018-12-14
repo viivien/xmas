@@ -8,6 +8,7 @@ import charco.xmas.domain.Objet;
 import charco.xmas.domain.Partie;
 import charco.xmas.domain.TourDeJeu;
 import charco.xmas.domain.Tuile;
+import competitive.programming.geometry.Coord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +52,7 @@ class Player {
                 String playerTile = in.next();
                 List<Direction> directions = getDirectionsFromInputString(playerTile);
                 Tuile tuileJoueur = new Tuile(playerX, playerY, directions);
+                listInputTuiles.add(tuileJoueur);
                 if (i == 0) {
                     monJoueur = new Joueur(tuileJoueur);
                 } else {
@@ -65,21 +67,15 @@ class Player {
                 int itemY = in.nextInt();
                 int itemPlayerId = in.nextInt();
 
-                //TODO extraie daans une methode
-//                if (itemX == -1) {
-//                    itemX = ;
-//                    itemY = ;
-//                } else if (itemX == -2) {
-//                    itemX = ;
-//                    itemY = ;
-//                }
                 Objet objet = new Objet(itemName, itemX, itemY);
 
-                if (itemPlayerId == 0) {
+                // Si itemX = -1 la tuile est sur notre tuile posseddée
+                if (itemPlayerId == 0 || itemX == -1) {
                     monJoueur.addObjet(objet);
                 } else {
                     joueurEnnemi.addObjet(objet);
                 }
+                listInputTuiles.stream().filter(tuile -> tuile.coordonnees().equals(new Coord(itemX, itemY))).findFirst().ifPresent(tuile -> tuile.addObjet(objet));
             }
             int numQuests = in.nextInt(); // the total number of revealed quests for both players
             for (int i = 0; i < numQuests; i++) {
